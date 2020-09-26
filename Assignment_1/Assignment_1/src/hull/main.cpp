@@ -11,6 +11,8 @@
 typedef std::complex<double> Point;
 typedef std::vector<Point> Polygon;
 
+// this is algorithm is adapted from pseudo code in wiki
+
 const double epsilon = 1e-6;
 
 double inline sqr(double x) {
@@ -28,7 +30,7 @@ double inline dist(const Point &u, const Point &v) {
 double inline cosine(const Point &u, const Point &v) {
     double detX = u.real() - v.real();
     double detY = u.imag() - v.imag();
-    return isClose(detX, 0) && isClose(detY, 0) ? 0 : detX / sqrt(detX + detY);
+    return isClose(detX, 0) && isClose(detY, 0) ? 0 : detX / sqrt(sqr(detX) + sqr(detY));
 }
 
 struct Compare {
@@ -64,7 +66,7 @@ Polygon convex_hull(std::vector<Point> &points) {
 	// use salientAngle(a, b, c) here
 	// graham algorithm
 	for (auto &p : points) {
-	    while (hull.size() > 1 && !salientAngle(hull.rbegin()[2], hull.rbegin()[1], p)) {
+	    while (hull.size() > 1 && !salientAngle(hull.rbegin()[1], hull.rbegin()[0], p)) {
             hull.pop_back();
 	    }
 	    hull.push_back(p);

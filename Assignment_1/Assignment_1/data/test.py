@@ -11,6 +11,7 @@ print(hull)
 hull_indices = np.unique(hull.simplices.flat)
 hull_pts = points[hull_indices, :]
 print(hull_pts)
+print(len(hull_pts))
 import matplotlib.pyplot as plt
 plt.plot(points[:,0], points[:,1], 'o')
 for simplex in hull.simplices:
