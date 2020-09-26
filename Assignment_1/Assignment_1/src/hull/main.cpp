@@ -5,48 +5,87 @@
 #include <iostream>
 #include <numeric>
 #include <vector>
+#include <cmath>
 ////////////////////////////////////////////////////////////////////////////////
 
 typedef std::complex<double> Point;
 typedef std::vector<Point> Polygon;
 
-double inline det(const Point &u, const Point &v) {
-	// TODO
-	return 0;
+const double epsilon = 1e-6;
+
+double inline sqr(double x) {
+    return x*x;
+}
+
+bool inline isClose(double a, double b) {
+    return abs(a-b) <= epsilon;
+}
+
+double inline dist(const Point &u, const Point &v) {
+    return sqr(u.real() - v.real()) + sqr(u.imag() - v.imag());
+}
+
+double inline cosine(const Point &u, const Point &v) {
+    double detX = u.real() - v.real();
+    double detY = u.imag() - v.imag();
+    return isClose(detX, 0) && isClose(detY, 0) ? 0 : detX / sqrt(detX + detY);
 }
 
 struct Compare {
 	Point p0; // Leftmost point of the poly
-	bool operator ()(const Point &p1, const Point &p2) {
-		// TODO
-		return true;
+	bool operator ()(const Point &p1, const Point &p2) const {
+	    double cos_1 = cosine(p0, p1);
+	    double cos_2 = cosine(p0, p2);
+        return isClose(cos_1, cos_2) ? dist(p0, p1) < dist(p0, p2) : cos_1 < cos_2;
 	}
 };
 
+// if 2 vectors are counterclockwise (salient angle)
 bool inline salientAngle(Point &a, Point &b, Point &c) {
-	// TODO
-	return false;
+    return (b.real() - a.real())*(c.imag() - a.imag()) - (b.imag() - a.imag())*(c.real() - a.real()) > 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 Polygon convex_hull(std::vector<Point> &points) {
+    Polygon hull;
+    if (points.empty()) {
+        return hull;
+    }
+
 	Compare order;
-	// TODO
-	order.p0 = Point(0, 0);
+	// find low-left point as p0 (not original point!)
+	auto it = std::min_element(points.begin(), points.end(), [](Point &a, Point &b) {
+	   return isClose(a.imag(), b.imag()) ? a.real() < b.real() : a.imag() < b.imag();
+	});
+	order.p0 = *it;
 	std::sort(points.begin(), points.end(), order);
-	Polygon hull;
-	// TODO
+
 	// use salientAngle(a, b, c) here
+	// graham algorithm
+	for (auto &p : points) {
+	    while (hull.size() > 1 && !salientAngle(hull.rbegin()[2], hull.rbegin()[1], p)) {
+            hull.pop_back();
+	    }
+	    hull.push_back(p);
+	}
+
 	return hull;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
+// cuz of NRVO, return value will be fine
 std::vector<Point> load_xyz(const std::string &filename) {
 	std::vector<Point> points;
 	std::ifstream in(filename);
-	// TODO
+	int n;
+	in >> n;
+	while (n--) {
+	    double x, y, z;
+	    in >> x >> y >> z;
+	    points.emplace_back(x, y);
+	}
 	return points;
 }
 
